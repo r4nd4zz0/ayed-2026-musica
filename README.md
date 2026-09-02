@@ -5,6 +5,7 @@ Repositorio del grupo. Partir de este esqueleto. No borrar la estructura de `src
 ### Integrantes
 
 | Nombre | Mail | GitHub |
+| :--- | :--- | :--- |
 | Nicolás Randazzo | nicorandazzo03@hotmail.com | r4nd4zz0 |
 | Mauricio Medina | mauriciomedinamt@gmail.com | mauricio0004 |
 
