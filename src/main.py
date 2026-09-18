@@ -1,6 +1,7 @@
-import csv
 from pathlib import Path
+
 from src.config import TEMA
+from src.dominio.biblioteca import BibliotecaMusical
 
 TEMAS = {
     "pokedex": "Pokédex",
@@ -8,40 +9,63 @@ TEMAS = {
     "musica": "Biblioteca musical",
 }
 
-
-def cargar_dataset(nombre_archivo: str = "canciones.csv") -> list[dict]:
-    """
-    Carga el dataset de la cátedra desde data/canciones.csv sin hardcodear filas.
-    Cumple ítem 1.2 de la rúbrica.
-    """
-    ruta_archivo = Path(__file__).resolve().parent.parent / "data" / nombre_archivo
-
-    if not ruta_archivo.is_file():
-        print(f"Error: no se encontró el archivo en {ruta_archivo}")
-        return []
-
-    catalogo = []
-    with open(ruta_archivo, mode="r", encoding="utf-8") as archivo:
-        lector = csv.DictReader(archivo)
-        for fila in lector:
-            catalogo.append(fila)
-
-    return catalogo
+biblioteca = BibliotecaMusical(Path(__file__).resolve().parent.parent / "data")
 
 
-def listar_catalogo(catalogo: list[dict]) -> None:
-    """Muestra los elementos cargados en memoria."""
-    if not catalogo:
+def listar_catalogo() -> None:
+    canciones = biblioteca.listar_catalogo()
+    if not canciones:
         print("El catálogo está vacío o no se pudo cargar.")
         return
 
-    print(f"\n--- Catálogo cargado ({len(catalogo)} canciones) ---")
-    for cancion in catalogo:
-        print(f"[{cancion['id']}] {cancion['titulo']} - {cancion['artista']} ({cancion['album']}, {cancion['anio']})")
+    print(f"\n--- Catálogo cargado ({len(canciones)} canciones) ---")
+    for cancion in canciones:
+        print(f"[{cancion.id}] {cancion.titulo} - {cancion.artista} ({cancion.album}, {cancion.anio})")
 
 
-def pendiente():
-    print("Todavía no está implementado. Completar en la entrega que corresponde.")
+def ver_detalle() -> None:
+    try:
+        dato = int(input("Ingresá el id de la canción: ").strip())
+    except ValueError:
+        print("El id debe ser un número entero.")
+        return
+
+    try:
+        cancion = biblioteca.obtener_cancion(dato)
+    except KeyError:
+        print(f"No existe la canción con id {dato}.")
+        return
+
+    print("\nDetalle de canción:")
+    print(f"- id: {cancion.id}")
+    print(f"- título: {cancion.titulo}")
+    print(f"- artista: {cancion.artista}")
+    print(f"- álbum: {cancion.album}")
+    print(f"- género: {cancion.genero}")
+    print(f"- año: {cancion.anio}")
+    print(f"- duración: {cancion.duracion_seg} s")
+
+
+def buscar_cancion() -> None:
+    texto = input("Ingresá texto para buscar por título: ").strip()
+    resultados = biblioteca.buscar_por_titulo(texto)
+    if not resultados:
+        print("No se encontraron canciones con ese texto.")
+        return
+
+    print(f"\nResultados ({len(resultados)}):")
+    for cancion in resultados:
+        print(f"[{cancion.id}] {cancion.titulo} - {cancion.artista}")
+
+
+def operacion_recursiva() -> None:
+    try:
+        dato = int(input("Ingresá el id de la canción base: ").strip())
+    except ValueError:
+        print("El id debe ser un número entero.")
+        return
+
+    biblioteca.mostrar_derivadas(dato)
 
 
 def mostrar_menu():
@@ -65,8 +89,6 @@ def main():
         print("Seteá TEMA en src/config.py: 'pokedex', 'recetario' o 'musica'.")
         return
 
-    catalogo = cargar_dataset()
-
     opcion = None
     while opcion != "0":
         mostrar_menu()
@@ -74,9 +96,17 @@ def main():
         if opcion == "0":
             print("Chau.")
         elif opcion == "1":
-            listar_catalogo(catalogo)
-        elif opcion in {"2", "3", "4", "5", "6", "7", "8", "9"}:
-            pendiente()
+            listar_catalogo()
+        elif opcion == "2":
+            ver_detalle()
+        elif opcion == "3":
+            buscar_cancion()
+        elif opcion == "4":
+            print("Todavía no está implementado. Completar en la entrega que corresponde.")
+        elif opcion == "5":
+            operacion_recursiva()
+        elif opcion in {"6", "7", "8", "9"}:
+            print("Todavía no está implementado. Completar en la entrega que corresponde.")
         else:
             print("Opción inválida.")
 
