@@ -77,3 +77,8 @@ class ListaEnlazada:
         while actual is not None:
             yield actual.dato
             actual = actual.siguiente
+    
+    def ver_primero(self):
+        if self.esta_vacia():
+            return None
+        return self._cabeza.dato

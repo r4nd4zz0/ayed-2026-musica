@@ -14,15 +14,15 @@ class Pila:
     def desapilar(self):
         if self.esta_vacia():
             raise PilaVaciaError("La pila está vacía.")
-
-        dato = self._items._cabeza.dato
+        
+        dato = self._items.ver_primero()
         self._items.eliminar(dato)
         return dato
 
     def ver_tope(self):
         if self.esta_vacia():
             raise PilaVaciaError("La pila está vacía.")
-        return self._items._cabeza.dato
+        return self._items.ver_primero()
 
     def esta_vacia(self):
         return self._items.esta_vacia()

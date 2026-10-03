@@ -15,14 +15,14 @@ class Cola:
         if self.esta_vacia():
             raise ColaVaciaError("La cola está vacía.")
 
-        frente = self._items._cabeza.dato
+        frente = self._items.ver_primero()
         self._items.eliminar(frente)
         return frente
 
     def ver_frente(self):
         if self.esta_vacia():
             raise ColaVaciaError("La cola está vacía.")
-        return self._items._cabeza.dato
+        return self._items.ver_primero()
 
     def esta_vacia(self):
         return self._items.esta_vacia()
