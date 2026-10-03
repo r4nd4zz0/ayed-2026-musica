@@ -8,7 +8,7 @@ Mínimos: 8 casos escritos en E2; ejecutados en E3; 15 de regresión en E6 (pila
 
 | ID | Entrega | Acción (pasos en el CLI) | Datos | Resultado esperado | Resultado | Notas |
 | --- | --- | --- | --- | --- | --- | --- |
-| P01 | E1 | Arrancar el programa y listar catálogo (opción 1) | dataset `canciones.csv` | Lista no vacía con formato `[id] título - artista`, sin traceback | Pasa | Catálogo inicial cargado |
+| P01 | E1 | Arrancar el programa y listar catálogo (opción 1) | dataset `canciones.csv` | Lista no vacía con formato `[id] título - artista`, sin traceback | Pasa | Catálogo inicial cargado correctamente |
 | P02 | E1 | Ver detalle con id inexistente (opción 2) | `id = -1` | Mensaje claro: "No existe la canción con id -1.", el menú continúa | Pasa | Manejo de KeyError |
 | P03 | E1 | Ver detalle con id no numérico (opción 2) | texto `abc` | Mensaje claro: "El id debe ser un número entero.", el menú continúa | Pasa | Validación de entrada |
 | P04 | E1 | Búsqueda por texto con coincidencia (opción 3) | texto existente en título | Lista todas las canciones coincidentes sin distinguir mayúsculas/minúsculas | Pasa | Filtro por subcadena |
