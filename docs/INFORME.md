@@ -30,11 +30,14 @@ Un ítem del catálogo es una instancia de la clase inmutable "Canción" ("id", 
 
 | TAD | Operaciones | Invariante |
 | --- | --- | --- |
-| ListaEnlazada |  |  |
-| Pila |  |  |
-| Cola |  |  |
+| ListaEnlazada | insertar_al_inicio, insertar_al_final, insertar_ordenado, buscar, eliminar, esta_vacia, tamanio, \_\_iter\_\_ | `_tamanio` coincide exactamente con la cantidad de nodos accesibles desde `_cabeza`. El enlace `siguiente` del último nodo siempre es `None`. |
+| Pila | apilar, desapilar, ver_tope, esta_vacia | Disciplina LIFO estricta. Todo acceso y modificación se realiza sobre la cabeza de la `ListaEnlazada` interna. |
+| Cola | encolar, desencolar, ver_frente, esta_vacia | Disciplina FIFO estricta. Las inserciones se realizan al final y las extracciones siempre desde la cabeza de la `ListaEnlazada` interna. |
 
-Dónde se usa cada uno en el dominio.
+Dónde se usa cada uno en el dominio:
+* **ListaEnlazada:** Estructura subyacente para implementar la clase `Playlist` (colección con tope máximo), así como el soporte interno de `Pila` y `Cola`.
+* **Pila:** Se utiliza para el historial de canciones agregadas o reproducidas, permitiendo deshacer la última acción realizada.
+* **Cola:** Se utiliza para gestionar la cola de reproducción de temas, atendiendo las canciones en orden de llegada (turnos de reproducción).
 
 ## 5. Complejidad (E4)
 

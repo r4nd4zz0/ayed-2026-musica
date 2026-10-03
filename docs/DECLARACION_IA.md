@@ -8,7 +8,7 @@ Fecha de esta versión del archivo:
 |-|-|-|-|-|-|-|
 |E1|18/09/2026|Gemini|docs, git|Formato y comandos de sincronización|Verificación visual y ejecución en terminal|Mauricio y Nicolás|
 |E2|18/09/2026|Gemini|docs, diseño|Redacción de traza recursiva y casos de prueba|Revisión del código del dominio, ajuste del caso base y prueba de ejecución manual|Mauricio y Nicolás|
-|E3|||||||
+|E3|03/10/2026|Gemini|código, debug, docs|Implementación de Nodo, ListaEnlazada, Pila, Cola y excepciones|Revisión de métodos, imports y pruebas funcionales en CLI|Mauricio y Nicolás|
 |E4|||||||
 |E5|||||||
 |E6|||||||

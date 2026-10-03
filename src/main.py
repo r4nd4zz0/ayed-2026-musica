@@ -1,41 +1,38 @@
 from pathlib import Path
-
 from src.config import TEMA
 from src.dominio.biblioteca import BibliotecaMusical
-
+from src.dominio.biblioteca import BibliotecaMusical, Playlist
+from src.tads.pila import Pila
+from src.tads.cola import Cola
+from src.excepciones import ColeccionLlenaError, PilaVaciaError, ColaVaciaError
 TEMAS = {
     "pokedex": "Pokédex",
     "recetario": "Recetario",
     "musica": "Biblioteca musical",
 }
-
 biblioteca = BibliotecaMusical(Path(__file__).resolve().parent.parent / "data")
-
-
+playlist = Playlist(tope=10)       
+historial = Pila()                 
+cola_reproduccion = Cola()
 def listar_catalogo() -> None:
     canciones = biblioteca.listar_catalogo()
     if not canciones:
         print("El catálogo está vacío o no se pudo cargar.")
         return
-
     print(f"\n--- Catálogo cargado ({len(canciones)} canciones) ---")
     for cancion in canciones:
         print(f"[{cancion.id}] {cancion.titulo} - {cancion.artista} ({cancion.album}, {cancion.anio})")
-
-
 def ver_detalle() -> None:
     try:
         dato = int(input("Ingresá el id de la canción: ").strip())
     except ValueError:
         print("El id debe ser un número entero.")
         return
-
     try:
         cancion = biblioteca.obtener_cancion(dato)
     except KeyError:
         print(f"No existe la canción con id {dato}.")
         return
-
     print("\nDetalle de canción:")
     print(f"- id: {cancion.id}")
     print(f"- título: {cancion.titulo}")
@@ -44,30 +41,69 @@ def ver_detalle() -> None:
     print(f"- género: {cancion.genero}")
     print(f"- año: {cancion.anio}")
     print(f"- duración: {cancion.duracion_seg} s")
-
-
 def buscar_cancion() -> None:
     texto = input("Ingresá texto para buscar por título: ").strip()
     resultados = biblioteca.buscar_por_titulo(texto)
     if not resultados:
         print("No se encontraron canciones con ese texto.")
         return
-
     print(f"\nResultados ({len(resultados)}):")
     for cancion in resultados:
         print(f"[{cancion.id}] {cancion.titulo} - {cancion.artista}")
-
-
 def operacion_recursiva() -> None:
     try:
         dato = int(input("Ingresá el id de la canción base: ").strip())
     except ValueError:
         print("El id debe ser un número entero.")
         return
-
     biblioteca.mostrar_derivadas(dato)
-
-
+def gestionar_playlist() -> None:
+    print("\n--- Playlist ---")
+    print("1. Agregar canción")
+    print("2. Listar playlist")
+    opcion = input("Elige una opción: ").strip()
+    if opcion == "1":
+        try:
+            id_cancion = int(input("Ingresá el id de la canción: ").strip())
+            cancion = biblioteca.obtener_cancion(id_cancion)
+            playlist.agregar(cancion)
+            historial.apilar(cancion) # Guardamos la acción en la pila para poder deshacerla
+            print(f"✅ Agregada a la playlist: {cancion.titulo}")
+        except ValueError:
+            print("El id debe ser un número entero.")
+        except KeyError:
+            print(f"No existe la canción con id {id_cancion}.")
+        except ColeccionLlenaError as e:
+            print(f"❌ {e}")
+    elif opcion == "2":
+        playlist.listar()
+def deshacer_historial() -> None:
+    try:
+        cancion = historial.desapilar()
+        print(f"⏪ Deshecho. Se eliminó del historial: {cancion.titulo}")
+    except PilaVaciaError as e:
+        print(f"❌ {e}")
+def gestionar_cola() -> None:
+    print("\n--- Cola de Reproducción ---")
+    print("1. Encolar canción")
+    print("2. Reproducir siguiente (Desencolar)")
+    opcion = input("Elige una opción: ").strip()
+    if opcion == "1":
+        try:
+            id_cancion = int(input("Ingresá el id de la canción a encolar: ").strip())
+            cancion = biblioteca.obtener_cancion(id_cancion)
+            cola_reproduccion.encolar(cancion)
+            print(f"✅ Encolada para reproducir: {cancion.titulo}")
+        except ValueError:
+            print("El id debe ser un número entero.")
+        except KeyError:
+            print(f"No existe la canción con id {id_cancion}.")
+    elif opcion == "2":
+        try:
+            cancion = cola_reproduccion.desencolar()
+            print(f"▶️ Reproduciendo turno: {cancion.titulo}")
+        except ColaVaciaError as e:
+            print(f"❌ {e}")
 def mostrar_menu():
     nombre = TEMAS.get(TEMA, TEMA or "(sin tema)")
     print()
@@ -82,13 +118,10 @@ def mostrar_menu():
     print("8. Cola")
     print("9. Guardar / cargar archivos")
     print("0. Salir")
-
-
 def main():
     if TEMA not in TEMAS:
         print("Seteá TEMA en src/config.py: 'pokedex', 'recetario' o 'musica'.")
         return
-
     opcion = None
     while opcion != "0":
         mostrar_menu()
@@ -109,7 +142,5 @@ def main():
             print("Todavía no está implementado. Completar en la entrega que corresponde.")
         else:
             print("Opción inválida.")
-
-
 if __name__ == "__main__":
     main()
