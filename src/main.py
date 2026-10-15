@@ -1,6 +1,7 @@
 import csv
 from pathlib import Path
-
+from src.algoritmos.busqueda import busqueda_lineal, busqueda_binaria
+from src.algoritmos.ordenamiento import ordenar_seleccion, ordenar_insercion
 from src.config import TEMA
 from src.excepciones import ColaVaciaError, PilaVaciaError
 from src.tads.cola import Cola
@@ -141,6 +142,58 @@ def manejar_cola():
         else:
             print("Opción inválida.")
 
+def manejar_busqueda(catalogo, catalogo_ordenado):
+    print("\nBuscar por título usando: 1) Lineal  2) Binaria")
+    tipo = input("> ").strip()
+    
+    if tipo == "2" and not catalogo_ordenado:
+        print("Error: El catálogo debe estar ordenado por título antes de usar búsqueda binaria.")
+        return
+
+    clave = input("Ingresá el título exacto: ")
+    
+    if tipo == "1":
+        resultado = busqueda_lineal(catalogo, clave, lambda c: c.titulo)
+    elif tipo == "2":
+        resultado = busqueda_binaria(catalogo, clave, lambda c: c.titulo)
+    else:
+        print("Opción inválida.")
+        return
+
+    if resultado:
+        print(f"Encontrado: {resultado.titulo}")
+    else:
+        print("No encontrado.")
+
+
+def manejar_ordenamiento(catalogo):
+    print("\nOrdenar por: 1) Título  2) Duración / ID")
+    criterio = input("> ").strip()
+    print("Algoritmo: 1) Selección (no estable)  2) Inserción (estable)")
+    algo = input("> ").strip()
+
+    if criterio == "1":
+        obtener_clave = lambda c: c.titulo
+    elif criterio == "2":
+        obtener_clave = lambda c: c.duracion 
+    else:
+        print("Opción inválida.")
+        return False
+
+    if algo == "1":
+        ordenar_seleccion(catalogo, obtener_clave)
+        print("Catálogo ordenado por selección.")
+    elif algo == "2":
+        ordenar_insercion(catalogo, obtener_clave)
+        print("Catálogo ordenado por inserción.")
+    else:
+        print("Opción inválida.")
+        return False
+
+    if criterio == "1":
+        return True
+    else:
+        return False
 
 def mostrar_menu():
     nombre = TEMAS.get(TEMA, TEMA or "(sin tema)")
@@ -164,6 +217,7 @@ def main():
         return
 
     catalogo = cargar_dataset()
+    catalogo_ordenado = False
     opcion = None
 
     while opcion != "0":
@@ -177,9 +231,9 @@ def main():
         elif opcion == "2":
             pendiente()
         elif opcion == "3":
-            pendiente()
+            manejar_busqueda(catalogo, catalogo_ordenado)
         elif opcion == "4":
-            pendiente()
+            catalogo_ordenado = manejar_ordenamiento(catalogo)
         elif opcion == "5":
             pendiente()
         elif opcion == "6":
