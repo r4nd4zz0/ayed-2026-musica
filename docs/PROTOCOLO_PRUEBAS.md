@@ -22,4 +22,4 @@ Mínimos: 8 casos escritos en E2; ejecutados en E3; 15 de regresión en E6 (pila
 | P12 | E3 | Listar colección con el iterador | 2+ ítems | El orden coincide con las inserciones | Pasa | Recorre e imprime la colección en orden con for/iterador |
 | P13 | E4 | Búsqueda lineal y binaria (opción 4 / buscar) | catálogo ordenado y no ordenado | Devuelve resultado si existe, avisa si hace falta ordenar | Pasa | Requiere orden previo para la binaria |
 | P14 | E4 | Ordenar con selección e inserción | lista de ejemplos | Se ordena sin usar `sorted()` ni `list.sort()` | Pasa | Aplica dos métodos propios |
-| P15 | E5 | Guardar y recuperar estado (CSV / Binario) | registros modificados | Mantiene la persistencia y detecta archivos corruptos | no corrido | Previsto para E5 |
+| P15 | E5 | Guardar y recuperar estado (CSV / Binario) | registros modificados | Mantiene la persistencia y detecta archivos corruptos | Pasa | Probado con data/basura.bin, ataja el error de magia incorrecta sin traceback |

@@ -25,5 +25,16 @@ class Cancion:
             duracion_seg=int(fila["duracion_seg"]),
         )
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "titulo": self.titulo,
+            "artista": self.artista,
+            "album": self.album,
+            "genero": self.genero,
+            "anio": self.anio,
+            "duracion_seg": self.duracion_seg,
+        }
+
     def __str__(self) -> str:
         return f"[{self.id}] {self.titulo} - {self.artista} ({self.album}, {self.anio})"
