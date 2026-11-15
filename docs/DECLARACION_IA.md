@@ -1,16 +1,16 @@
 # Declaración de uso de IA
 
-Actualizar **en cada entrega**. Si no usaron IA, dejar una fila que lo diga. No declarar cuando sí se usó anula la entrega.
+Actualizar en cada entrega. Las herramientas de IA se declaran como asistencia; los integrantes deben revisar el código y poder explicar el resultado.
 
-Fecha de esta versión del archivo: 20/10/2026
+Fecha de esta versión del archivo: 15/11/2026
 
-|Entrega|Fecha|Herramienta (ChatGPT, Cursor, Copilot, otra)|Para qué (diseño, código, debug, docs)|Qué pegaron o generaron|Qué reescribieron / revisaron a mano|Integrante|
-|-|-|-|-|-|-|-|
-|E1|18/09/2026|Gemini|docs, git|Formato y comandos de sincronización|Verificación visual y ejecución en terminal|Mauricio y Nicolás|
-|E2|18/09/2026|Gemini|docs, diseño|Redacción de traza recursiva y casos de prueba|Revisión del código del dominio, ajuste del caso base y prueba de ejecución manual|Mauricio y Nicolás|
-|E3|03/10/2026|Copilot|código, debug, docs|Implementación y revisión de encapsulamiento, TADs, pila/cola y protocolo|Validación de métodos, manejo de excepciones y control del menú|Mauricio y Nicolás|
-|E4|20/10/2026|Copilot|código, docs, análisis|Búsqueda lineal/binaria, ordenamientos propios y sección de complejidad|Verificación de la tabla de costo, mediciones y pruebas de regresión|Mauricio y Nicolás|
-|E5|11/11/2026|Gemini|código, debug, docs|Diseño binario con struct, funciones de persistencia (.csv y .bin) y conexión de ABM en el menú|Ajuste de anchos del struct a los datos reales (105 bytes), validación de rutas absolutas y ejecución manual de los casos P13, P14 y P15|Mauricio y Nicolás|
-|E6|||||||
+| Entrega | Fecha | Herramienta | Para qué | Qué se generó o sugirió | Qué debe revisar el equipo | Integrantes |
+| --- | --- | --- | --- | --- | --- | --- |
+| E1 | 18/09/2026 | Gemini | Documentación y Git | Formato y comandos de sincronización | Verificación visual y ejecución en terminal | Mauricio y Nicolás |
+| E2 | 18/09/2026 | Gemini | Documentación y diseño | Redacción de traza recursiva y casos de prueba | Revisión del código del dominio, ajuste del caso base y prueba manual | Mauricio y Nicolás |
+| E3 | 03/10/2026 | Copilot | Código, debug y documentación | Implementación/revisión de TADs, pila, cola y protocolo | Validar métodos, excepciones y control del menú | Mauricio y Nicolás |
+| E4 | 20/10/2026 | Copilot | Código, documentación y análisis | Búsqueda lineal/binaria, ordenamientos y sección de complejidad | Verificar tabla de costos, mediciones y regresión | Mauricio y Nicolás |
+| E5 | 11/11/2026 | Gemini | Código, debug y documentación | Diseño binario con `struct`, funciones de persistencia y conexión del ABM | Revisar anchos del `struct`, rutas y casos P13–P15 | Mauricio y Nicolás |
+| E6 | 15/11/2026 | GitHub Copilot | Revisión de código y documentación | Corrección de persistencia de texto en el CLI, atributo de duración; propuesta de cierre de README, informe y protocolo | Ejecutar P01–P15, validar cambios y completar resultados observados; revisar la documentación antes del tag | Mauricio |
 
-Compromiso: cualquiera del grupo puede explicar cualquier archivo del tag.
+Compromiso: cualquiera del grupo puede explicar cualquier archivo del tag. La fila E6 registra asistencia de IA y no afirma que las pruebas hayan sido ejecutadas.

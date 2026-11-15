@@ -1,102 +1,75 @@
 # Informe del TP
 
-Completar y hacer crecer en cada entrega. No hace falta prosa larga: oraciones claras y tablas.
-
 ## 1. Grupo y tema
 
-- Tema: Biblioteca Musical
-- Por qué lo eligieron (5–8 líneas): Puramente por interés. A ninguno de los dos nos interesaba un recetario o una pokedex, mientras que si no interesaba ver como sería la biblioteca musical.
+- **Integrantes:** Mauricio Medina y Nicolás Randazzo.
+- **Tema:** Biblioteca musical.
+- **Motivo:** Elegimos música porque nos interesaba explorar cómo organizar un catálogo de canciones y sus versiones. El dataset permite trabajar con búsquedas, ordenamientos y relaciones entre canciones. También ofrece ejemplos concretos para recorrer relaciones recursivamente, como versiones en vivo, covers y remixes. El tema conecta las estructuras de datos del curso con una aplicación conocida. El catálogo se carga desde archivos de datos y no está hardcodeado en el programa.
 
 ## 2. Modelo
 
-Qué es un ítem del catálogo. Qué es mutable y qué no (E1). Cómo se relacionan catálogo, colección principal, pila y cola.
+Cada canción es una instancia inmutable de `Cancion`, con `id`, `titulo`, `artista`, `album`, `genero`, `anio` y `duracion_seg`. La clase es inmutable (`dataclass(frozen=True)`); las operaciones de modificación reemplazan el objeto en la colección por una nueva instancia. El catálogo que usa el CLI es una lista Python de canciones. La colección auxiliar es una `ListaEnlazada`; el historial es una `Pila` y la cola de reproducción una `Cola`, ambas construidas sobre la lista enlazada.
 
-Un ítem del catálogo es una instancia de la clase inmutable "Canción" ("id", "titulo", "artista", "album", "genero", "anio", "duracion_seg"). Las relaciones jerárquicas se representan mediante listas de versiones y objetos de dominio. El catálogo principal es un diccionario que indexa cada canción por ID y una segunda estructura agrupa derivaciones por base.
-
-* "canciones": asocia cada ID con su objeto "Cancion".
-* "versiones_por_base": agrupa bajo el ID de la canción base una lista con todas sus versiones derivadas directas.
+`BibliotecaMusical` carga canciones en un diccionario indexado por ID y las relaciones de `versiones.csv` en un diccionario que agrupa por `version_de_id`. Así, `cancion_id` identifica la canción derivada y `version_de_id` su base. El dataset seleccionado es `data/canciones.csv` junto con `data/versiones.csv`.
 
 ## 3. Recursión (E2)
 
-- Función: BibliotecaMusical.derivadas_de(cancion_id: int, visitadas: set[int] | None = None) -> list[VersionCancion]
-- Caso base: Si "cancion_id in visitadas" detecta referencias circulares, retorna una lista vacía ("[]") inmediatamente, cortando la ejecución para prevenir ciclos infinitos. Si la canción no tiene derivadas, el bucle no encuentra versiones y termina la recursión en la lista vacía.
-- Caso recursivo: Para cada versión directa asociada a "cancion_id", se añade dicha versión al resultado y se invoca "derivadas_de(version.cancion_id, visitadas)" para acumular las derivaciones anidadas.
-- Traza de un ejemplo real del dataset: Búsqueda de versiones derivadas para la canción base ID 1:
-	* "derivadas_de(1, None)": visitadas pasa a ser "{1}". Encuentra una derivada directa: la canción 62 ("live"). La agrega a la lista e invoca "derivadas_de(62, {1})".
-	* "derivadas_de(62, {1})": visitadas pasa a ser "{1, 62}". Como la canción 62 no tiene derivadas en el catálogo, el bucle no realiza llamadas hijas y retorna "[]".
-	* Resolución: La primera llamada recibe "[]", consolida su lista final con "[VersionCancion(62, 1, 'live')]" y la retorna.
+La operación principal es `BibliotecaMusical.derivadas_de(cancion_id, visitadas)`. El caso base se cumple si el ID ya está en `visitadas` (evita ciclos) o si no hay versiones asociadas. En el caso recursivo, cada versión directa se agrega al resultado y se recorren las derivadas de su `cancion_id`.
+
+Ejemplo del dataset para ID 1:
+
+1. `derivadas_de(1, None)` registra el ID 1 y encuentra la versión 62.
+2. `derivadas_de(62, {1})` registra el ID 62; como no tiene derivadas, retorna una lista vacía.
+3. La primera llamada retorna la versión 62 como derivada de la canción 1.
+
+La complejidad es O(V + E) en el subgrafo alcanzable, donde V son canciones visitadas y E relaciones recorridas; el conjunto `visitadas` y la lista de resultado usan O(V) espacio en el peor caso.
 
 ## 4. TADs (E3)
 
-| TAD | Operaciones | Invariante |
+| TAD | Operaciones relevantes | Invariante / comportamiento |
 | --- | --- | --- |
-| ListaEnlazada | insertar_al_inicio, insertar_al_final, insertar_ordenado, buscar, eliminar, esta_vacia, tamanio, \_\_iter\_\_ | `_tamanio` coincide exactamente con la cantidad de nodos accesibles y la estructura interna no usa `list` de Python. |
-| Pila | apilar, desapilar, ver_tope, esta_vacia | Disciplina LIFO estricta. Todo acceso y modificación se realiza sobre la cabeza de la `ListaEnlazada` interna. |
-| Cola | encolar, desencolar, ver_frente, esta_vacia | Disciplina FIFO estricta. Las inserciones se realizan al final y las extracciones siempre desde la cabeza de la `ListaEnlazada` interna. |
+| `ListaEnlazada` | insertar al inicio/final, insertar ordenado, buscar, eliminar, iterar | `_longitud` coincide con el número de nodos alcanzables desde `_cabeza`. |
+| `Pila` | apilar, ver tope, desapilar | LIFO; la cabeza de la lista enlazada representa el tope. |
+| `Cola` | encolar, ver frente, desencolar | FIFO; se inserta al final y se extrae de la cabeza. |
 
-Dónde se usa cada uno en el dominio:
-* **ListaEnlazada:** Estructura subyacente para implementar la clase `Playlist` (colección con tope máximo), así como el soporte interno de `Pila` y `Cola`.
-* **Pila:** Se utiliza para el historial de canciones agregadas o reproducidas, permitiendo deshacer la última acción realizada.
-* **Cola:** Se utiliza para gestionar la cola de reproducción de temas, atendiendo las canciones en orden de llegada (turnos de reproducción).
+La colección auxiliar se muestra mediante el iterador de `ListaEnlazada`. La pila y la cola también exponen iteradores, aunque el CLI opera mediante sus operaciones específicas.
 
 ## 5. Complejidad (E4)
 
-| Operación | Cota temporal | Cota espacial | Justificación |
+Sea n la cantidad de canciones, y m la cantidad de nodos de una estructura enlazada.
+
+| Operación | Tiempo | Espacio auxiliar | Justificación |
 | --- | --- | --- | --- |
-| `listar_catalogo()` | O(n) | O(1) | Recorre cada canción del diccionario una sola vez para imprimirla. |
-| `busqueda_lineal()` | O(n) | O(1) | En el peor caso recorre toda la colección hasta encontrar el valor o llegar al final. |
-| `busqueda_binaria()` | O(log n) | O(1) | En cada paso reduce el rango de búsqueda a la mitad, pero requiere que la colección esté ordenada. |
-| `ordenar_seleccion()` | O(n²) | O(1) | Busca el mínimo del resto del arreglo repetidas veces y hace intercambios en cada iteración. |
-| `ordenar_insercion()` | O(n²) | O(1) | En el peor caso, cada elemento se desplaza muchas posiciones hacia la izquierda. |
-| `buscar_por_titulo()` | O(n) | O(n) | Recorre todas las canciones y arma una lista con los elementos coincidentes. |
+| Listar catálogo | O(n) | O(1) | Se visita cada canción una vez y se imprime directamente. |
+| Búsqueda lineal | O(n) | O(1) | En el peor caso recorre todo el catálogo. |
+| Búsqueda binaria | O(log n) | O(1) | Reduce a la mitad el intervalo; requiere orden por título. |
+| Ordenamiento por selección | O(n²) | O(1) | Busca el mínimo del tramo restante en cada iteración. |
+| Ordenamiento por inserción | O(n²) peor caso; O(n) mejor caso | O(1) | Desplaza elementos para insertar cada canción en su posición. |
+| Buscar ID para ABM | O(n) | O(1) | Recorre la lista hasta localizar el ID. |
+| Insertar al final de `ListaEnlazada` | O(m) | O(1) | Recorre la lista porque no mantiene una referencia al último nodo. |
+| Apilar / desapilar en cabeza | O(1) | O(1) | La cabeza representa el tope. |
+| Encolar | O(m) | O(1) | La inserción al final recorre la lista. |
+| Desencolar | O(1) | O(1) | Se elimina la cabeza. |
+| Actualizar registro binario por posición | O(1) para ubicarlo | O(1) | `seek` calcula el desplazamiento usando header y tamaño fijo. |
+| Guardar/cargar catálogo | O(n) | O(n) al cargar | Se procesa cada registro una vez. |
 
-La diferencia principal es que la búsqueda lineal crece en proporción directa al tamaño de la entrada, mientras que la búsqueda binaria corta el problema a la mitad cada vez. En ordenamientos, tanto selección como inserción tienen costo cuadrático porque comparan y reubican elementos repetidas veces dentro del arreglo.
-
-Mediciones (`time.perf_counter`):
-
-El siguiente bloque es la forma correcta de medir el costo real usando `perf_counter()`. Se ejecuta sobre el dataset original y una copia agrandada (al menos dos tamaños) para comparar la tendencia: la lineal y los ordenamientos crecen con `n` o `n²`, mientras que la binaria crece aproximadamente con `log n`.
-
-```python
-from time import perf_counter
-
-
-def medir(funcion, *args, repeticiones=20):
-    tiempos = []
-    for _ in range(repeticiones):
-        inicio = perf_counter()
-        funcion(*args)
-        fin = perf_counter()
-        tiempos.append(fin - inicio)
-    return sum(tiempos) / len(tiempos)
-
-# ejemplo orientativo de uso
-# arr = list(range(1000))
-# t_lineal = medir(busqueda_lineal, arr, 999)
-# t_binaria = medir(busqueda_binaria, sorted(arr), 999)
-# t_sel = medir(ordenar_seleccion, arr.copy(), lambda x: x)
-# t_ins = medir(ordenar_insercion, arr.copy(), lambda x: x)
-```
-
-| Operación | n | Tiempo promedio (ejemplo orientativo) |
-| --- | --- | --- |
-| `busqueda_lineal` | 1000 | ~0.0003 s |
-| `busqueda_lineal` | 5000 | ~0.0016 s |
-| `busqueda_binaria` | 1000 | ~0.00008 s |
-| `busqueda_binaria` | 5000 | ~0.00009 s |
-| `ordenar_seleccion` | 1000 | ~0.12 s |
-| `ordenar_insercion` | 1000 | ~0.05 s |
-
-Se observa que la binaria casi no cambia con un aumento moderado de `n` porque divide el problema a la mitad. En cambio, la lineal y los ordenamientos crecen notablemente al aumentar el tamaño, como era esperable por sus cotas `O(n)` y `O(n²)`.
+La búsqueda binaria solo es válida si la colección está ordenada según la misma clave usada para comparar. El CLI habilita esa búsqueda después de ordenar por título.
 
 ## 6. Persistencia (E5)
 
-- **Layout del registro binario (campos, `struct`, anchos):** Se utiliza `struct.Struct("<I 30s 25s 30s 12s 2H")` que ocupa exactamente **105 bytes** por registro[cite: 36]. Los campos son: `id` (I, 4 bytes), `titulo` (30s, 30 bytes), `artista` (25s, 25 bytes), `album` (30s, 30 bytes), `genero` (12s, 12 bytes), `anio` (H, 2 bytes) y `duracion_seg` (H, 2 bytes)[cite: 35]. Las cadenas se codifican en UTF-8 y se rellenan/recortan con `\x00` al ancho fijo[cite: 40].
-- **Header:** Se utiliza `struct.Struct("<4s 1s I")` que ocupa **9 bytes** al inicio del archivo[cite: 36]. Contiene: magia `b"AYED"` (4 bytes), tema de música `b"M"` (1 byte) y la cantidad total de registros almacenados (I, 4 bytes)[cite: 36].
-- **Cómo se actualiza un registro por posición:** Se abre el archivo binario en modo lectura/escritura (`"r+b"`)[cite: 38]. Mediante la función `seek(9 + posicion * 105)`, el cursor salta directamente al byte exacto donde empieza el registro a modificar (acceso directo, O(1)) y lo sobrescribe usando `FORMATO.pack()`, sin necesidad de reescribir el resto del archivo[cite: 18, 38, 40].
+El catálogo de texto se guarda en `data/canciones.csv`, con encabezado y una canción por fila. El CLI inicializa el catálogo desde ese archivo; por eso las altas, modificaciones y bajas persistidas se conservan al reiniciar.
+
+El archivo binario usa `struct.Struct("<I 30s 25s 30s 12s 2H")`: ID como entero sin signo de 4 bytes; título de 30 bytes; artista de 25 bytes; álbum de 30 bytes; género de 12 bytes; año y duración como enteros sin signo de 2 bytes cada uno. El registro ocupa **105 bytes**. Los textos se codifican en UTF-8 y se rellenan con bytes nulos hasta alcanzar el ancho fijo; los valores que exceden el ancho se recortan.
+
+El header usa `struct.Struct("<4s 1s I")` y ocupa **9 bytes**: magia `AYED` (4 bytes), tema `M` (1 byte) y cantidad de registros (4 bytes). El registro de posición p empieza en el desplazamiento `9 + p * 105`. La modificación abre el archivo en modo `r+b`, hace `seek` a ese desplazamiento y sobrescribe un único registro. El alta agrega un registro y actualiza la cantidad del header; la baja reescribe los registros restantes.
+
+La capa de persistencia detecta errores de header, magia/tema incorrectos y datos truncados durante la carga. El archivo `.bin` es un artefacto generado por el programa y no se incluye en el repositorio.
 
 ## 7. Reparto de trabajo (E6)
 
-| Integrante | Qué hizo | Qué puede defender |
+| Integrante | Responsabilidades registradas | Temas a poder defender |
 | --- | --- | --- |
-| Mauricio | Revisión de estructura del proyecto, validación del flujo principal, documentación y pruebas de regresión. | Catalogo, recursión, TADs, complejidad y control de entregas. |
-| Nicolás | Implementación de la lógica del dominio, recursión, TADs y menú funcional del proyecto. | Flujos de dominio, lista enlazada, pila/cola, recursión y uso del CLI. |
+| Mauricio Medina | Revisión de estructura y flujo, documentación, pruebas de regresión y ajustes de cierre E6. | Catálogo, recursión, TADs, complejidad, persistencia y protocolo. |
+| Nicolás Randazzo | Implementación de la lógica del dominio, recursión, TADs y menú; persistencia de E5. | Dominio, lista enlazada, pila/cola, recursión, CLI y archivos. |
+
+El reparto describe las responsabilidades del trabajo en equipo y no reemplaza la revisión individual del código por parte de ambos integrantes.

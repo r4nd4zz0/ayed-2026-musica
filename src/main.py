@@ -25,92 +25,84 @@ TEMAS = {
     "musica": "Biblioteca musical",
 }
 
-coleccion_principal = ListaEnlazada()
-historial = Pila()
-cola_reproduccion = Cola()
-
 RUTA_TXT = DATA / "canciones.csv"
 RUTA_BIN = DATA / "canciones.bin"
 ENCABEZADOS = ["id", "titulo", "artista", "album", "genero", "anio", "duracion_seg"]
 
+coleccion_principal = ListaEnlazada()
+historial = Pila()
+cola_reproduccion = Cola()
+
+
 def armar_catalogo_desde_txt(ruta: Path = RUTA_TXT) -> list[Cancion]:
-    """Lee canciones.csv con cargar_texto y devuelve una lista de objetos Cancion."""
-    filas = cargar_csv(ruta)
-    return [Cancion.from_dict(fila) for fila in filas]
+    """Carga el catálogo de canciones desde el archivo de texto/CSV."""
+    return [Cancion.from_dict(fila) for fila in cargar_csv(ruta)]
+
+
+def filas_del_catalogo(catalogo) -> list[dict]:
+    """Convierte canciones del catálogo a filas para la persistencia de texto."""
+    return [cancion.to_dict() for cancion in catalogo]
+
+
+def persistir_texto(catalogo) -> None:
+    guardar_csv(RUTA_TXT, filas_del_catalogo(catalogo), ENCABEZADOS)
+
+
+def guardar_todo(catalogo) -> None:
+    """Guarda una copia completa del catálogo en texto y en binario."""
+    persistir_texto(catalogo)
+    guardar_binario(RUTA_BIN, catalogo)
+
+
+def posicion_del_id(catalogo, id_buscado: int) -> int:
+    """Devuelve la posición 0-based del ID, o -1 cuando no existe."""
+    for posicion, cancion in enumerate(catalogo):
+        if cancion.id == id_buscado:
+            return posicion
+    return -1
+
+
+def cargar_dataset(nombre_archivo: str = "canciones.csv") -> list[Cancion]:
+    """Carga inicial del catálogo desde el dataset de texto de la cátedra."""
+    try:
+        return armar_catalogo_desde_txt(DATA / nombre_archivo)
+    except (ArchivoInvalidoError, ValueError, KeyError) as error:
+        print(f"Error al cargar dataset: {error}")
+        return []
+
+
+def listar_catalogo(catalogo) -> None:
+    """Lista el catálogo recorriéndolo mediante su iterador."""
+    if not catalogo:
+        print("El catálogo está vacío o no se pudo cargar.")
+        return
+    print(f"\n--- Catálogo cargado ({len(catalogo)} canciones) ---")
+    for cancion in catalogo:
+        print(f"  {cancion} - {cancion.genero} ({cancion.duracion_seg}s)")
+
 
 def ver_detalle(catalogo) -> None:
-    """Muestra todos los campos de una canción por su ID (Opción 2 - P02)."""
     entrada = input("Ingresá el ID de la canción para ver su detalle: ").strip()
     try:
         id_buscado = int(entrada)
     except ValueError:
         print("Error: el ID debe ser un número entero.")
         return
-    for item in catalogo:
-        item_id = int(item["id"]) if isinstance(item, dict) else item.id
-        if item_id == id_buscado:
+    for cancion in catalogo:
+        if cancion.id == id_buscado:
             print("\n--- Detalle de la canción ---")
-            if isinstance(item, dict):
-                print(f"  ID:       {item['id']}")
-                print(f"  Título:   {item['titulo']}")
-                print(f"  Artista:  {item['artista']}")
-                print(f"  Álbum:    {item['album']}")
-                print(f"  Género:   {item['genero']}")
-                print(f"  Año:      {item['anio']}")
-                print(f"  Duración: {item['duracion_seg']} segundos")
-            else:
-                print(f"  ID:       {item.id}")
-                print(f"  Título:   {item.titulo}")
-                print(f"  Artista:  {item.artista}")
-                print(f"  Álbum:    {item.album}")
-                print(f"  Género:   {item.genero}")
-                print(f"  Año:      {item.anio}")
-                print(f"  Duración: {item.duracion_seg} segundos")
+            print(f"  ID:       {cancion.id}")
+            print(f"  Título:   {cancion.titulo}")
+            print(f"  Artista:  {cancion.artista}")
+            print(f"  Álbum:    {cancion.album}")
+            print(f"  Género:   {cancion.genero}")
+            print(f"  Año:      {cancion.anio}")
+            print(f"  Duración: {cancion.duracion_seg} segundos")
             return
     print(f"No existe una canción con ID {id_buscado}.")
 
-def filas_del_catalogo(catalogo) -> list[dict]:
-    """Convierte los objetos Cancion del catálogo en dicts para guardar_texto."""
-    filas = []
-    for c in catalogo:
-        filas.append(c.to_dict() if hasattr(c, "to_dict") else dict(c))
-    return filas
 
-def guardar_todo(catalogo) -> None:
-    """Sincroniza el catálogo en memoria con canciones.csv y canciones.bin."""
-    guardar_csv(RUTA_TXT, filas_del_catalogo(catalogo), ENCABEZADOS)
-    guardar_binario(RUTA_BIN, catalogo)
-
-def posicion_del_id(catalogo, id_buscado: int) -> int:
-    """Devuelve la posición 0-based de la canción con ese id, o -1 si no está."""
-    for pos, cancion in enumerate(catalogo):
-        if cancion.id == id_buscado:
-            return pos
-    return -1
-
-def cargar_dataset(nombre_archivo: str = "canciones.csv") -> list[Cancion]:
-    """Carga inicial del catálogo usando la capa de persistencia de E5."""
-    ruta_archivo = DATA / nombre_archivo
-    try:
-        return armar_catalogo_desde_txt(ruta_archivo)
-    except ArchivoInvalidoError as exc:
-        print(f"Error al cargar dataset: {exc}")
-        return []
-
-def listar_catalogo(catalogo) -> None:
-    """Muestra los elementos cargados en memoria."""
-    if not catalogo:
-        print("El catálogo está vacío o no se pudo cargar.")
-        return
-
-    print(f"\n--- Catálogo cargado ({len(catalogo)} canciones) ---")
-    for cancion in catalogo:
-        print(f"  {cancion} - {cancion.genero} ({cancion.duracion_seg}s)")
-
-def pendiente():
-    print("Todavía no está implementado. Completar en la entrega que corresponde.")
-
-def manejar_coleccion_principal(catalogo: list[Cancion]):
+def manejar_coleccion_principal(catalogo) -> None:
     while True:
         print("\nColección principal y ABM persistente")
         print("1. Agregar elemento a mi colección (ListaEnlazada)")
@@ -123,7 +115,7 @@ def manejar_coleccion_principal(catalogo: list[Cancion]):
 
         if opcion == "0":
             return
-        elif opcion == "1":
+        if opcion == "1":
             valor = input("Ingresá un elemento: ").strip()
             if not valor:
                 print("El valor no puede estar vacío.")
@@ -153,70 +145,74 @@ def manejar_coleccion_principal(catalogo: list[Cancion]):
                     print("Título y artista son obligatorios.")
                     continue
                 nueva = Cancion(nuevo_id, titulo, artista, album, genero, anio, duracion)
-                catalogo.append(nueva)
-                if not RUTA_BIN.exists():
-                    guardar_binario(RUTA_BIN, catalogo)
-                else:
+                if RUTA_BIN.exists():
                     alta_binario(RUTA_BIN, nueva)
-                guardar_texto(RUTA_TXT, filas_del_catalogo(catalogo), ENCABEZADOS)
+                else:
+                    guardar_binario(RUTA_BIN, [*catalogo, nueva])
+                catalogo.append(nueva)
+                persistir_texto(catalogo)
                 print(f"Canción agregada y persistida: {nueva}")
-            except ValueError:
-                print("Error: ID, año y duración deben ser números enteros.")
-            except ArchivoInvalidoError as exc:
-                print(f"Error de archivo: {exc}")
+            except (ValueError, ArchivoInvalidoError) as error:
+                print(f"No se pudo dar de alta la canción: {error}")
         elif opcion == "4":
             try:
                 id_mod = int(input("ID de la canción a modificar: ").strip())
-                pos = posicion_del_id(catalogo, id_mod)
-                if pos == -1:
+                posicion = posicion_del_id(catalogo, id_mod)
+                if posicion == -1:
                     print("No se encontró una canción con ese ID.")
                     continue
-                actual = catalogo[pos]
+                actual = catalogo[posicion]
                 print(f"Actual: {actual} - {actual.genero} ({actual.duracion_seg}s)")
-                nuevo_titulo = input(f"Nuevo título [{actual.titulo}]: ").strip() or actual.titulo
-                nuevo_artista = input(f"Nuevo artista [{actual.artista}]: ").strip() or actual.artista
-                nuevo_album = input(f"Nuevo álbum [{actual.album}]: ").strip() or actual.album
-                nuevo_genero = input(f"Nuevo género [{actual.genero}]: ").strip() or actual.genero
-                anio_str = input(f"Nuevo año [{actual.anio}]: ").strip()
-                dur_str = input(f"Nueva duración seg [{actual.duracion_seg}]: ").strip()
-                nuevo_anio = int(anio_str) if anio_str else actual.anio
-                nueva_dur = int(dur_str) if dur_str else actual.duracion_seg
-
+                titulo = input(f"Nuevo título [{actual.titulo}]: ").strip() or actual.titulo
+                artista = input(f"Nuevo artista [{actual.artista}]: ").strip() or actual.artista
+                album = input(f"Nuevo álbum [{actual.album}]: ").strip() or actual.album
+                genero = input(f"Nuevo género [{actual.genero}]: ").strip() or actual.genero
+                anio_txt = input(f"Nuevo año [{actual.anio}]: ").strip()
+                duracion_txt = input(f"Nueva duración seg [{actual.duracion_seg}]: ").strip()
                 modificada = Cancion(
-                    actual.id, nuevo_titulo, nuevo_artista, nuevo_album,
-                    nuevo_genero, nuevo_anio, nueva_dur
+                    actual.id,
+                    titulo,
+                    artista,
+                    album,
+                    genero,
+                    int(anio_txt) if anio_txt else actual.anio,
+                    int(duracion_txt) if duracion_txt else actual.duracion_seg,
                 )
-                catalogo[pos] = modificada
-                if not RUTA_BIN.exists():
-                    guardar_binario(RUTA_BIN, catalogo)
+                if RUTA_BIN.exists():
+                    actualizar_registro(RUTA_BIN, posicion, modificada)
                 else:
-                    actualizar_registro(RUTA_BIN, pos, modificada)
-                guardar_texto(RUTA_TXT, filas_del_catalogo(catalogo), ENCABEZADOS)
-                print("Canción modificada por posición en .bin (seek) y actualizada en .csv.")
-            except ValueError:
-                print("Error: ingresá valores numéricos válidos.")
-            except ArchivoInvalidoError as exc:
-                print(f"Error de archivo: {exc}")
+                    copia = list(catalogo)
+                    copia[posicion] = modificada
+                    guardar_binario(RUTA_BIN, copia)
+                catalogo[posicion] = modificada
+                persistir_texto(catalogo)
+                print("Canción modificada por posición en .bin y actualizada en .csv.")
+            except (ValueError, ArchivoInvalidoError, IndexError) as error:
+                print(f"No se pudo modificar la canción: {error}")
         elif opcion == "5":
             try:
                 id_baja = int(input("ID de la canción a dar de baja: ").strip())
-                pos = posicion_del_id(catalogo, id_baja)
-                if pos == -1:
+                posicion = posicion_del_id(catalogo, id_baja)
+                if posicion == -1:
                     print("No se encontró una canción con ese ID.")
                     continue
-                eliminada = catalogo.pop(pos)
+                eliminada = catalogo[posicion]
                 if RUTA_BIN.exists():
-                    baja_binario(RUTA_BIN, pos)
-                guardar_texto(RUTA_TXT, filas_del_catalogo(catalogo), ENCABEZADOS)
+                    baja_binario(RUTA_BIN, posicion)
+                else:
+                    copia = list(catalogo)
+                    del copia[posicion]
+                    guardar_binario(RUTA_BIN, copia)
+                del catalogo[posicion]
+                persistir_texto(catalogo)
                 print(f"Canción eliminada del catálogo y de los archivos: {eliminada}")
-            except ValueError:
-                print("Error: el ID debe ser un número entero.")
-            except ArchivoInvalidoError as exc:
-                print(f"Error de archivo: {exc}")
+            except (ValueError, ArchivoInvalidoError, IndexError) as error:
+                print(f"No se pudo dar de baja la canción: {error}")
         else:
             print("Opción inválida.")
 
-def manejar_historial():
+
+def manejar_historial() -> None:
     while True:
         print("\nHistorial (pila)")
         print("1. Apilar")
@@ -224,30 +220,30 @@ def manejar_historial():
         print("3. Desapilar")
         print("0. Volver")
         opcion = input("> ").strip()
-
         if opcion == "0":
             return
         if opcion == "1":
             valor = input("Ingresá una acción: ").strip()
-            if not valor:
+            if valor:
+                historial.apilar(valor)
+                print(f"Acción agregada al historial: {valor}")
+            else:
                 print("La acción no puede estar vacía.")
-                continue
-            historial.apilar(valor)
-            print(f"Acción agregada al historial: {valor}")
         elif opcion == "2":
             try:
                 print(f"Tope: {historial.ver_tope()}")
-            except PilaVaciaError as exc:
-                print(exc)
+            except PilaVaciaError as error:
+                print(error)
         elif opcion == "3":
             try:
                 print(f"Se desapiló: {historial.desapilar()}")
-            except PilaVaciaError as exc:
-                print(exc)
+            except PilaVaciaError as error:
+                print(error)
         else:
             print("Opción inválida.")
 
-def manejar_cola():
+
+def manejar_cola() -> None:
     while True:
         print("\nCola de reproducción")
         print("1. Encolar")
@@ -255,165 +251,140 @@ def manejar_cola():
         print("3. Desencolar")
         print("0. Volver")
         opcion = input("> ").strip()
-
         if opcion == "0":
             return
         if opcion == "1":
             valor = input("Ingresá una canción: ").strip()
-            if not valor:
+            if valor:
+                cola_reproduccion.encolar(valor)
+                print(f"Se encoló: {valor}")
+            else:
                 print("La canción no puede estar vacía.")
-                continue
-            cola_reproduccion.encolar(valor)
-            print(f"Se encoló: {valor}")
         elif opcion == "2":
             try:
                 print(f"Frente: {cola_reproduccion.ver_frente()}")
-            except ColaVaciaError as exc:
-                print(exc)
+            except ColaVaciaError as error:
+                print(error)
         elif opcion == "3":
             try:
                 print(f"Se desencoló: {cola_reproduccion.desencolar()}")
-            except ColaVaciaError as exc:
-                print(exc)
+            except ColaVaciaError as error:
+                print(error)
         else:
             print("Opción inválida.")
 
-def manejar_busqueda(catalogo, catalogo_ordenado):
-    print("\nBuscar por título usando: 1) Lineal  2) Binaria")
+
+def manejar_busqueda(catalogo, catalogo_ordenado: bool) -> None:
+    print("\nBuscar título: 1) Lineal  2) Binaria")
     tipo = input("> ").strip()
-    
+    if tipo not in {"1", "2"}:
+        print("Opción inválida.")
+        return
     if tipo == "2" and not catalogo_ordenado:
-        print("Error: El catálogo debe estar ordenado por título antes de usar búsqueda binaria.")
+        print("Error: ordená el catálogo por título antes de usar búsqueda binaria.")
         return
-
-    clave = input("Ingresá el título exacto: ")
-    
+    clave = input("Ingresá el título exacto: ").strip()
     if tipo == "1":
-        resultado = busqueda_lineal(catalogo, clave, lambda c: c.titulo)
-    elif tipo == "2":
-        resultado = busqueda_binaria(catalogo, clave, lambda c: c.titulo)
+        resultado = busqueda_lineal(catalogo, clave, lambda cancion: cancion.titulo)
     else:
-        print("Opción inválida.")
-        return
+        resultado = busqueda_binaria(catalogo, clave, lambda cancion: cancion.titulo)
+    print(f"Encontrado: {resultado}" if resultado else "No encontrado.")
 
-    if resultado:
-        print(f"Encontrado: {resultado.titulo}")
-    else:
-        print("No encontrado.")
 
-def manejar_ordenamiento(catalogo):
-    print("\nOrdenar por: 1) Título  2) Duración / ID")
+def manejar_ordenamiento(catalogo) -> bool:
+    print("\nOrdenar por: 1) Título  2) Duración y, en empate, ID")
     criterio = input("> ").strip()
-    print("Algoritmo: 1) Selección (no estable)  2) Inserción (estable)")
-    algo = input("> ").strip()
-
+    print("Algoritmo: 1) Selección  2) Inserción")
+    algoritmo = input("> ").strip()
     if criterio == "1":
-        obtener_clave = lambda c: c.titulo
+        obtener_clave = lambda cancion: cancion.titulo
     elif criterio == "2":
-        obtener_clave = lambda c: c.duracion 
+        obtener_clave = lambda cancion: (cancion.duracion_seg, cancion.id)
     else:
         print("Opción inválida.")
         return False
-
-    if algo == "1":
+    if algoritmo == "1":
         ordenar_seleccion(catalogo, obtener_clave)
-        print("Catálogo ordenado por selección.")
-    elif algo == "2":
+    elif algoritmo == "2":
         ordenar_insercion(catalogo, obtener_clave)
-        print("Catálogo ordenado por inserción.")
     else:
         print("Opción inválida.")
         return False
+    print("Catálogo ordenado.")
+    return criterio == "1"
 
-    if criterio == "1":
-        return True
-    else:
-        return False
 
-def manejar_archivos(catalogo: list[Cancion]) -> list[Cancion]:
+def manejar_archivos(catalogo) -> list[Cancion]:
     print("\nGuardar / cargar archivos")
-    print("  a) Cargar catálogo desde texto (.csv/.txt)")
-    print("  b) Guardar catálogo en texto (.csv/.txt)")
-    print("  c) Guardar catálogo en binario (.bin)")
-    print("  d) Cargar catálogo desde binario (.bin)")
-    print("  e) Probar carga de archivo inválido (o ingresar ruta manual)")
-    sub = input("Subopción > ").strip().lower()
-
+    print("a) Cargar catálogo desde texto")
+    print("b) Guardar catálogo en texto")
+    print("c) Guardar catálogo en binario")
+    print("d) Cargar catálogo desde binario")
+    print("e) Probar archivo inválido o cargar una ruta manual")
+    subopcion = input("Subopción > ").strip().lower()
     try:
-        if sub == "a":
+        if subopcion == "a":
             catalogo = armar_catalogo_desde_txt(RUTA_TXT)
             print(f"Catálogo cargado desde texto: {len(catalogo)} canciones.")
-        elif sub == "b":
-            guardar_csv(RUTA_TXT, filas_del_catalogo(catalogo), ENCABEZADOS)
+        elif subopcion == "b":
+            persistir_texto(catalogo)
             print("Catálogo guardado en texto.")
-        elif sub == "c":
+        elif subopcion == "c":
             guardar_binario(RUTA_BIN, catalogo)
             print("Catálogo guardado en binario (.bin).")
-        elif sub == "d":
-            lista_enlazada = cargar_binario(RUTA_BIN)
-            catalogo = list(lista_enlazada)
+        elif subopcion == "d":
+            catalogo = list(cargar_binario(RUTA_BIN))
             print(f"Catálogo cargado desde binario: {len(catalogo)} canciones.")
-        elif sub == "e":
-            ruta_manual = input("Ingresá la ruta del archivo a probar (ej: data/basura.bin): ").strip()
-            if ruta_manual.endswith(".bin"):
-                lista_enlazada = cargar_binario(Path(ruta_manual))
-                catalogo = list(lista_enlazada)
-            else:
-                catalogo = armar_catalogo_desde_txt(Path(ruta_manual))
+        elif subopcion == "e":
+            ruta = Path(input("Ruta del archivo a probar: ").strip())
+            catalogo = list(cargar_binario(ruta)) if ruta.suffix.lower() == ".bin" else armar_catalogo_desde_txt(ruta)
             print(f"Archivo cargado correctamente ({len(catalogo)} canciones).")
         else:
             print("Subopción inválida.")
-    except ArchivoInvalidoError as error:
+    except (ArchivoInvalidoError, ValueError, KeyError) as error:
         print(f"Archivo inválido: {error}")
-
     return catalogo
 
+
 def manejar_recursion() -> None:
-    """Ejecuta la operación recursiva buscando las versiones derivadas de una canción."""
     entrada = input("Ingresá el ID de la canción base: ").strip()
     try:
         cancion_id = int(entrada)
+        BibliotecaMusical().mostrar_derivadas(cancion_id)
     except ValueError:
         print("Error: el ID debe ser un número entero.")
-        return
+    except (FileNotFoundError, ArchivoInvalidoError) as error:
+        print(f"Error al consultar versiones: {error}")
 
-    try:
-        biblioteca = BibliotecaMusical()
-        biblioteca.mostrar_derivadas(cancion_id)
-    except Exception as exc:
-        print(f"Error al consultar versiones: {exc}")
 
-def mostrar_menu():
+def mostrar_menu() -> None:
     nombre = TEMAS.get(TEMA, TEMA or "(sin tema)")
-    print()
-    print(f"=== {nombre} — AyED C2 2026 ===")
+    print(f"\n=== {nombre} — AyED C2 2026 ===")
     print("1. Listar catálogo")
     print("2. Ver detalle")
     print("3. Buscar")
     print("4. Ordenar")
     print("5. Operación recursiva")
-    print("6. Colección principal")
+    print("6. Colección principal y ABM")
     print("7. Historial (pila)")
     print("8. Cola")
     print("9. Guardar / cargar archivos")
     print("0. Salir")
 
-def main():
+
+def main() -> None:
     if TEMA not in TEMAS:
         print("Seteá TEMA en src/config.py: 'pokedex', 'recetario' o 'musica'.")
         return
-
     catalogo = cargar_dataset()
     catalogo_ordenado = False
-    opcion = None
-
-    while opcion != "0":
+    while True:
         mostrar_menu()
         opcion = input("> ").strip()
-
         if opcion == "0":
             print("Chau.")
-        elif opcion == "1":
+            return
+        if opcion == "1":
             listar_catalogo(catalogo)
         elif opcion == "2":
             ver_detalle(catalogo)
@@ -425,14 +396,17 @@ def main():
             manejar_recursion()
         elif opcion == "6":
             manejar_coleccion_principal(catalogo)
+            catalogo_ordenado = False
         elif opcion == "7":
             manejar_historial()
         elif opcion == "8":
             manejar_cola()
         elif opcion == "9":
             catalogo = manejar_archivos(catalogo)
+            catalogo_ordenado = False
         else:
             print("Opción inválida.")
+
 
 if __name__ == "__main__":
     main()

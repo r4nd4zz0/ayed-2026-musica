@@ -1,25 +1,26 @@
-# Protocolo de pruebas
+# Protocolo de regresión
 
-Pruebas **manuales**. Cada fila es un caso. Ejecutar sobre el tag que entregan.
+Pruebas manuales para ejecutar desde la raíz con `python -m src.main`. Registrar el resultado observado en la columna Resultado; no marcar un caso como aprobado sin ejecutar sus pasos sobre el estado final que se entrega.
 
-Leyenda de resultado: `pasa` / `no pasa` / `no corrido`.
+Leyenda: `Pasa`, `No pasa` o `No corrido`.
 
-Mínimos: 8 casos escritos en E2; ejecutados en E3; 15 de regresión en E6 (pila, cola, archivos, recursión, búsquedas).
+**Estado de esta revisión:** los casos están especificados, pero no se ejecutaron desde este entorno; por eso quedan `No corrido`. Antes de crear el tag `entrega-6`, el equipo debe ejecutarlos, anotar el resultado real y completar notas si aparece una diferencia.
 
 | ID | Entrega | Acción (pasos en el CLI) | Datos | Resultado esperado | Resultado | Notas |
 | --- | --- | --- | --- | --- | --- | --- |
-| P01 | E1 | Arrancar el programa y listar catálogo (opción 1) | dataset `canciones.csv` | Lista no vacía con formato `[id] título - artista`, sin traceback | Pasa | Catálogo inicial cargado correctamente |
-| P02 | E1 | Ver detalle con id inexistente (opción 2) | `id = -1` | Mensaje claro: "No existe la canción con id -1.", el menú continúa | Pasa | Manejo de KeyError |
-| P03 | E1 | Ver detalle con id no numérico (opción 2) | texto `abc` | Mensaje claro: "El id debe ser un número entero.", el menú continúa | Pasa | Validación de entrada |
-| P04 | E1 | Búsqueda por texto con coincidencia (opción 3) | texto existente en título | Lista todas las canciones coincidentes sin distinguir mayúsculas/minúsculas | Pasa | Filtro por subcadena |
-| P05 | E1 | Búsqueda por texto sin coincidencias (opción 3) | subcadena inexistente `zzzz` | Mensaje: "No se encontraron canciones con ese texto." | Pasa | Búsqueda vacía |
-| P06 | E2 | Operación recursiva sobre ítem con derivadas (opción 5) | `id = 1` | Imprime la canción base y su derivada anidada `[62] (live)` | Pasa | Recorrido del árbol |
-| P07 | E2 | Operación recursiva sobre ítem hoja sin derivadas (opción 5) | `id = 62` | Mensaje: "No tiene versiones derivadas." (caso base hoja) | Pasa | Caso base sin hijos |
-| P08 | E2 | Operación recursiva con id inexistente (opción 5) | `id = 9999` | Mensaje: "No existe la canción con id 9999." | Pasa | Control de existencia previa |
-| P09 | E3 | Agregar a la colección principal hasta el tope | equipo de 6 / equivalente | El séptimo falla con excepción propia | Pasa | Lanza ColeccionLlenaError al intentar superar el tope |
-| P10 | E3 | Desapilar historial vacío | pila vacía | Excepción propia, menú sigue | Pasa | Captura PilaVaciaError correctamente y el menú continúa |
-| P11 | E3 | Desencolar cola vacía | cola vacía | Excepción propia, menú sigue | Pasa | Captura ColaVaciaError correctamente y el menú continúa |
-| P12 | E3 | Listar colección con el iterador | 2+ ítems | El orden coincide con las inserciones | Pasa | Recorre e imprime la colección en orden con for/iterador |
-| P13 | E4 | Búsqueda lineal y binaria (opción 4 / buscar) | catálogo ordenado y no ordenado | Devuelve resultado si existe, avisa si hace falta ordenar | Pasa | Requiere orden previo para la binaria |
-| P14 | E4 | Ordenar con selección e inserción | lista de ejemplos | Se ordena sin usar `sorted()` ni `list.sort()` | Pasa | Aplica dos métodos propios |
-| P15 | E5 | Guardar y recuperar estado (CSV / Binario) | registros modificados | Mantiene la persistencia y detecta archivos corruptos | Pasa | Probado con data/basura.bin, ataja el error de magia incorrecta sin traceback |
+| P01 | E1 | Iniciar y elegir listar catálogo (1). | Dataset original. | Se muestra un catálogo no vacío, sin traceback. | No corrido | |
+| P02 | E1 | Ver detalle (2) de un ID inexistente. | ID `-1`. | Informa que no existe y vuelve al menú. | No corrido | |
+| P03 | E1 | Ver detalle (2) con entrada no numérica. | `abc`. | Informa que el ID debe ser entero y vuelve al menú. | No corrido | |
+| P04 | E1 | Buscar (3), elegir lineal (1), buscar un título existente. | `De Musica Ligera`. | Se encuentra la canción. | No corrido | |
+| P05 | E1 | Buscar (3), elegir lineal (1), ingresar un título inexistente. | `zzzz`. | Informa que no se encontró. | No corrido | |
+| P06 | E2 | Operación recursiva (5) para una canción con derivada. | ID `1`. | Se muestra la canción base y su versión derivada ID 62. | No corrido | |
+| P07 | E2 | Operación recursiva (5) para una hoja. | ID `62`. | Informa que no tiene versiones derivadas. | No corrido | |
+| P08 | E2 | Operación recursiva (5) para ID inexistente. | ID `9999`. | Informa que no existe el ID y el programa sigue. | No corrido | |
+| P09 | E3 | En colección principal (6), agregar dos elementos (1) y listarlos (2). | Dos textos distintos. | El iterador los muestra en el orden de inserción. | No corrido | |
+| P10 | E3 | En historial (7), desapilar (3) con pila vacía. | Pila recién iniciada. | Muestra el error de pila vacía y permite continuar. | No corrido | |
+| P11 | E3 | En cola (8), desencolar (3) con cola vacía. | Cola recién iniciada. | Muestra el error de cola vacía y permite continuar. | No corrido | |
+| P12 | E3 | En historial (7), apilar (1), consultar tope (2) y desapilar (3). | Acción `prueba`. | El tope y el elemento desapilado son `prueba`. | No corrido | |
+| P13 | E4 | Intentar búsqueda binaria (3, opción 2) antes de ordenar; luego ordenar por título (4) y buscar. | Título existente. | Antes de ordenar avisa; después encuentra el título. | No corrido | |
+| P14 | E4 | Ordenar (4) usando selección e inserción; probar ambos criterios. | Dataset completo. | El orden resultante corresponde al criterio y no hay errores. | No corrido | |
+| P15 | E5 | Guardar texto y binario (9); modificar un registro mediante ABM; reiniciar y cargar texto; probar archivo inválido. | Catálogo original y copia de prueba corrupta. | El cambio persiste al recargar; la carga corrupta muestra error controlado, sin traceback. | No corrido | No subir el `.bin` de prueba. |
+
