@@ -19,7 +19,7 @@ Un ítem del catálogo es una instancia de la clase inmutable "Canción" ("id", 
 ## 3. Recursión (E2)
 
 - Función: BibliotecaMusical.derivadas_de(cancion_id: int, visitadas: set[int] | None = None) -> list[VersionCancion]
-- Caso base: Si "cancion_id in visitadas" detecta referencias circulares, retorna una lista vacía ("[]") inmediatamente, cortando la ejecución para prevenir ciclos infinitos. Si la canción no tiene derivadas, el bucle no encuentra versiones y termina la recursión en la lista vacía.
+- Caso base: Si "cancion_id in visitadas" detecta referencias circulares, retorna una lista vacía ("[]") inmediatamente, cortando la ejecución para prevenir ciclos infinitos. Si la canción no tiene derivadas, el bucle no encuentra versiones y termina la recursión en una lista vacía.
 - Caso recursivo: Para cada versión directa asociada a "cancion_id", se añade dicha versión al resultado y se invoca "derivadas_de(version.cancion_id, visitadas)" para acumular las derivaciones anidadas.
 - Traza de un ejemplo real del dataset: Búsqueda de versiones derivadas para la canción base ID 1:
 	* "derivadas_de(1, None)": visitadas pasa a ser "{1}". Encuentra una derivada directa: la canción 62 ("live"). La agrega a la lista e invoca "derivadas_de(62, {1})".
@@ -90,9 +90,9 @@ Se observa que la binaria casi no cambia con un aumento moderado de `n` porque d
 
 ## 6. Persistencia (E5)
 
-- **Layout del registro binario (campos, `struct`, anchos):** Se utiliza `struct.Struct("<I 30s 25s 30s 12s 2H")` que ocupa exactamente **105 bytes** por registro[cite: 36]. Los campos son: `id` (I, 4 bytes), `titulo` (30s, 30 bytes), `artista` (25s, 25 bytes), `album` (30s, 30 bytes), `genero` (12s, 12 bytes), `anio` (H, 2 bytes) y `duracion_seg` (H, 2 bytes)[cite: 35]. Las cadenas se codifican en UTF-8 y se rellenan/recortan con `\x00` al ancho fijo[cite: 40].
-- **Header:** Se utiliza `struct.Struct("<4s 1s I")` que ocupa **9 bytes** al inicio del archivo[cite: 36]. Contiene: magia `b"AYED"` (4 bytes), tema de música `b"M"` (1 byte) y la cantidad total de registros almacenados (I, 4 bytes)[cite: 36].
-- **Cómo se actualiza un registro por posición:** Se abre el archivo binario en modo lectura/escritura (`"r+b"`)[cite: 38]. Mediante la función `seek(9 + posicion * 105)`, el cursor salta directamente al byte exacto donde empieza el registro a modificar (acceso directo, O(1)) y lo sobrescribe usando `FORMATO.pack()`, sin necesidad de reescribir el resto del archivo[cite: 18, 38, 40].
+- **Layout del registro binario (campos, `struct`, anchos):** Se utiliza `struct.Struct("<I 30s 25s 30s 12s 2H")` que ocupa exactamente **105 bytes** por registro. Los campos son: `id` (I, 4 bytes), `titulo` (30s, 30 bytes), `artista` (25s, 25 bytes), `album` (30s, 30 bytes), `genero` (12s, 12 bytes), `anio` (H, 2 bytes) y `duracion_seg` (H, 2 bytes). Las cadenas se codifican en UTF-8 y se rellenan/recortan con `\x00` al ancho fijo.
+- **Header:** Se utiliza `struct.Struct("<4s 1s I")` que ocupa **9 bytes** al inicio del archivo. Contiene: magia `b"AYED"` (4 bytes), tema de música `b"M"` (1 byte) y la cantidad total de registros almacenados (I, 4 bytes).
+- **Cómo se actualiza un registro por posición:** Se abre el archivo binario en modo lectura/escritura (`"r+b"`). Mediante la función `seek(9 + posicion * 105)`, el cursor salta directamente al byte exacto donde empieza el registro a modificar (acceso directo, O(1)) y lo sobrescribe usando `FORMATO.pack()`, sin necesidad de reescribir el resto del archivo.
 
 ## 7. Reparto de trabajo (E6)
 
